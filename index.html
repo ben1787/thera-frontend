@@ -1,19 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="/thera-frontend-web/">
 
   <meta charset="UTF-8">
@@ -23,42 +10,50 @@
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="thera_frontend">
+  <meta name="apple-mobile-web-app-title" content="thera_frontend_project">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>thera_frontend</title>
-  <link rel="manifest" href="manifest.json">
+  <title>thera_frontend_project</title>
+  <link rel="manifest" href="/thera-frontend-web/manifest.json">
 
   <script>
     // The value below is injected by flutter build, do not touch.
-    const serviceWorkerVersion = "2887019154";
+    const serviceWorkerVersion = "4204987719";
   </script>
   <!-- This script adds the flutter initialization JS code -->
-  <script src="flutter.js" defer></script>
+  <script src="/thera-frontend-web/flutter.js" defer></script>
 </head>
 <body>
   <script>
-    console.log('flutter.js loaded:', typeof _flutter !== 'undefined');
-    
+    console.log('Index.html loaded');
+
     window.addEventListener('load', function(ev) {
-      console.log('Window loaded:', typeof _flutter !== 'undefined');
+      console.log('Window loaded, _flutter:', typeof _flutter !== 'undefined');
       if (typeof _flutter === 'undefined') {
         console.error('_flutter is not defined');
         return;
       }
+
       // Download main.dart.js
       _flutter.loader.loadEntrypoint({
         serviceWorker: {
           serviceWorkerVersion: serviceWorkerVersion,
         },
         onEntrypointLoaded: function(engineInitializer) {
+          console.log('Entrypoint loaded');
           engineInitializer.initializeEngine().then(function(appRunner) {
+            console.log('Engine initialized');
             appRunner.runApp();
+            console.log('App running');
+          }).catch(function(error) {
+            console.error('Error initializing engine:', error);
           });
         }
+      }).catch(function(error) {
+        console.error('Error loading entrypoint:', error);
       });
     });
   </script>
