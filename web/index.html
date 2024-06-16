@@ -41,7 +41,14 @@
 </head>
 <body>
   <script>
+    console.log('flutter.js loaded:', typeof _flutter !== 'undefined');
+    
     window.addEventListener('load', function(ev) {
+      console.log('Window loaded:', typeof _flutter !== 'undefined');
+      if (typeof _flutter === 'undefined') {
+        console.error('_flutter is not defined');
+        return;
+      }
       // Download main.dart.js
       _flutter.loader.loadEntrypoint({
         serviceWorker: {
