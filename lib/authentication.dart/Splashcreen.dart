@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:theramvp_project/utilities.dart/App_color.dart';
-import 'package:theramvp_project/utilities.dart/app_font.dart';
+import 'package:thera_frontend/utilities.dart/App_color.dart';
+import 'package:thera_frontend/utilities.dart/app_font.dart';
 import '../other.dart/welcomescrren.dart';
 import '../utilities.dart/App_language.dart';
 import '../utilities.dart/app_constant.dart';
