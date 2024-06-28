@@ -19,7 +19,6 @@ class _ChatPageState extends State<ChatPage> {
   final uuid = Uuid();
   final _logger = Logger('ChatPage');
   final ApiService _apiService = ApiService();
-  String _message = '';
   String? _chatUsername;
 
   @override
@@ -44,7 +43,6 @@ class _ChatPageState extends State<ChatPage> {
 
   void _loadChat(String? chatId) {
     if (chatId != null) {
-      // Load existing chat messages based on chatId
       _logger.info('Loading chat with ID: $chatId');
     } else {
       _logger.info('Starting a new chat');
@@ -109,7 +107,11 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_chatUsername != null ? 'Chat with $_chatUsername' : 'New Chat'),
+        backgroundColor: Colors.white,
+        title: Text(
+          _chatUsername != null ? 'Chat with $_chatUsername' : 'New Chat',
+          style: TextStyle(color: Colors.black),
+        ),
       ),
       body: Column(
         children: [
@@ -119,22 +121,21 @@ class _ChatPageState extends State<ChatPage> {
               itemBuilder: (context, index) {
                 final message = _messages[index];
                 final inGreySection = _isMessageInGreySection(message);
-                return Container(
-                  color: inGreySection ? Colors.grey[200] : Colors.transparent,
-                  child: ListTile(
-                    title: Align(
-                      alignment: message.isUserMessage
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
-                      child: Container(
-                        padding: EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: message.isUserMessage
-                              ? Colors.blue[100]
-                              : Colors.grey[300],
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(message.text),
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Align(
+                    alignment: message.isUserMessage
+                        ? Alignment.centerRight
+                        : Alignment.centerLeft,
+                    child: Container(
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: inGreySection ? Colors.grey[300] : Colors.blueAccent,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        message.text,
+                        style: TextStyle(color: Colors.black),
                       ),
                     ),
                   ),
@@ -150,27 +151,35 @@ class _ChatPageState extends State<ChatPage> {
                   child: TextField(
                     controller: _controller,
                     decoration: InputDecoration(
-                      labelText: 'Enter your message',
+                      hintText: 'Message',
+                      filled: true,
+                      fillColor: Colors.grey[200],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
+                    style: TextStyle(color: Colors.black),
                     onSubmitted: (value) {
                       _sendMessage(MessageType.type1Sent);
                     },
                   ),
                 ),
+                SizedBox(width: 8),
                 GestureDetector(
-                  onLongPress: () {
-                    _sendMessage(MessageType.type2Sent);
-                  },
                   onTap: () {
                     _sendMessage(MessageType.type1Sent);
                   },
-                  child: Icon(Icons.send),
+                  onLongPress: () {
+                    _sendMessage(MessageType.type2Sent);
+                  },
+                  child: Icon(Icons.send, color: Colors.black),
                 ),
               ],
             ),
           ),
         ],
       ),
+      backgroundColor: Colors.white,
     );
   }
 

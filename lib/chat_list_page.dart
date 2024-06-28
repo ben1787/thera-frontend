@@ -30,7 +30,8 @@ class _ChatListPageState extends State<ChatListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chats'),
+        backgroundColor: Colors.white,
+        title: Text('Chats', style: TextStyle(color: Colors.black)),
       ),
       body: Column(
         children: [
@@ -38,7 +39,15 @@ class _ChatListPageState extends State<ChatListPage> {
             padding: const EdgeInsets.all(8.0),
             child: TextField(
               controller: _usernameController,
-              decoration: InputDecoration(labelText: 'Enter username'),
+              decoration: InputDecoration(
+                hintText: 'Enter username',
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              style: TextStyle(color: Colors.black),
             ),
           ),
           ElevatedButton(
@@ -55,16 +64,23 @@ class _ChatListPageState extends State<ChatListPage> {
                 );
               }
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blueAccent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              foregroundColor: Colors.white, // Set button text color
+            ),
             child: Text('Start New Chat'),
           ),
           Expanded(
             child: chatTitles.isEmpty
-                ? Center(child: Text('No chats yet'))
+                ? Center(child: Text('No chats yet', style: TextStyle(color: Colors.black)))
                 : ListView.builder(
                     itemCount: chatTitles.length,
                     itemBuilder: (context, index) {
                       return ListTile(
-                        title: Text(chatTitles[index]),
+                        title: Text(chatTitles[index], style: TextStyle(color: Colors.black)),
                         onTap: () {
                           Navigator.push(
                             context,
@@ -82,6 +98,7 @@ class _ChatListPageState extends State<ChatListPage> {
           ),
         ],
       ),
+      backgroundColor: Colors.white,
     );
   }
 }

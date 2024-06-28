@@ -15,7 +15,6 @@ class LoginPage extends StatelessWidget {
     try {
       final response = await _apiService.authenticateUser(username, password);
       _messageNotifier.value = response['message'];
-      // Navigate to the ChatListPage on successful login
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => ChatListPage()),
@@ -25,7 +24,7 @@ class LoginPage extends StatelessWidget {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => ChatListPage()),
-    );
+      );
     }
   }
 
@@ -33,7 +32,8 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Login'),
+        backgroundColor: Colors.white,
+        title: Text('Login', style: TextStyle(color: Colors.black)),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -42,27 +42,53 @@ class LoginPage extends StatelessWidget {
           children: [
             TextField(
               controller: _usernameController,
-              decoration: InputDecoration(labelText: 'Username'),
+              decoration: InputDecoration(
+                hintText: 'Username',
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              style: TextStyle(color: Colors.black),
             ),
+            SizedBox(height: 16),
             TextField(
               controller: _passwordController,
-              decoration: InputDecoration(labelText: 'Password'),
+              decoration: InputDecoration(
+                hintText: 'Password',
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
               obscureText: true,
+              style: TextStyle(color: Colors.black),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => _authenticate(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                foregroundColor: Colors.white, // Set button text color
+              ),
               child: Text('Login'),
             ),
+            SizedBox(height: 16),
             ValueListenableBuilder<String>(
               valueListenable: _messageNotifier,
               builder: (context, message, _) {
-                return Text(message);
+                return Text(message, style: TextStyle(color: Colors.red));
               },
             ),
           ],
         ),
       ),
+      backgroundColor: Colors.white,
     );
   }
 }
