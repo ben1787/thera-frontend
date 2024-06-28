@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
 import 'package:logging/logging.dart';
 import 'api_service.dart';
 import 'login_page.dart';
-import 'chat_page.dart'; // Make sure to create and import this
 
 void main() {
   _setupLogging();
@@ -34,13 +32,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => LoginPage(),
-        '/chat': (context) => ChatPage(),
-      },
+      home: LoginPage(),
     );
   }
 }
-
-// Update the ChatPage class here to remove login fields

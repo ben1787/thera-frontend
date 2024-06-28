@@ -63,7 +63,7 @@ class ApiServiceImpl implements ApiServiceInterface {
       throw Exception('Failed to join chat room. Status code: ${response.statusCode}, Body: ${response.body}');
     }
   }
-  
+
   @override
   Future<Map<String, dynamic>> sendMessage(String message, String type) async {
     final url = '$baseUrl/sendMessage';
@@ -105,5 +105,22 @@ class ApiServiceImpl implements ApiServiceInterface {
   @override
   void disconnectWebSocket() {
     _channel?.sink.close();
+  }
+
+  @override
+  Future<List<String>> getChatList() async {
+    final url = '$baseUrl/chatList';
+    _logger.info('Sending GET request to $url');
+
+    final response = await http.get(Uri.parse(url));
+
+    _logger.info('Received response: ${response.statusCode} ${response.body}');
+
+    if (response.statusCode == 200) {
+      return List<String>.from(jsonDecode(response.body));
+    } else {
+      _logger.warning('Failed to fetch chat list. Status code: ${response.statusCode}, Body: ${response.body}');
+      return [];
+    }
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'api_service.dart'; // Ensure this is imported
+import 'api_service.dart';
+import 'chat_list_page.dart';
 
 class LoginPage extends StatelessWidget {
   final TextEditingController _usernameController = TextEditingController();
@@ -14,10 +15,17 @@ class LoginPage extends StatelessWidget {
     try {
       final response = await _apiService.authenticateUser(username, password);
       _messageNotifier.value = response['message'];
-      // Navigate to the ChatPage on successful login
-      Navigator.pushReplacementNamed(context, '/chat');
+      // Navigate to the ChatListPage on successful login
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => ChatListPage()),
+      );
     } catch (e) {
       _messageNotifier.value = 'Failed to authenticate user: $e';
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => ChatListPage()),
+    );
     }
   }
 

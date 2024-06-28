@@ -1,7 +1,5 @@
 import 'api_service_web.dart';
 import 'api_service_interface.dart';
-  //if (dart.library.io) 'api_service_io.dart'
-  //if (dart.library.html) 'api_service_web.dart';
 
 class ApiService implements ApiServiceInterface {
   static final ApiServiceInterface _service = createService();
@@ -23,7 +21,7 @@ class ApiService implements ApiServiceInterface {
 
   @override
   Future<void> joinChatRoom(String chatUsername) {
-    return _service.joinChatRoom(chatUsername); // Add this line
+    return _service.joinChatRoom(chatUsername);
   }
 
   @override
@@ -39,5 +37,10 @@ class ApiService implements ApiServiceInterface {
   @override
   void disconnectWebSocket() {
     _service.disconnectWebSocket();
+  }
+
+  @override
+  Future<List<String>> getChatList() {
+    return _service.getChatList();
   }
 }
