@@ -20,18 +20,13 @@ class ApiService implements ApiServiceInterface {
   }
 
   @override
-  Future<void> joinChatRoom(String chatUsername) {
-    return _service.joinChatRoom(chatUsername);
+  void connectToWebSocket(String token, List<String> to, void Function(Map<String, dynamic>) onMessageReceived) {
+    _service.connectToWebSocket(token, to, onMessageReceived);
   }
 
   @override
-  Future<Map<String, dynamic>> sendMessage(String message, String type) {
-    return _service.sendMessage(message, type);
-  }
-
-  @override
-  void connectToWebSocket(void Function(Map<String, dynamic>) onMessageReceived) {
-    _service.connectToWebSocket(onMessageReceived);
+  void sendMessage(List<String> to, String message, String type) {
+    _service.sendMessage(to, message, type);
   }
 
   @override

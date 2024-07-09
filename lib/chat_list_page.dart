@@ -1,46 +1,47 @@
 import 'package:flutter/material.dart';
 import 'chat_page.dart';
-import 'api_service.dart';
+import 'package:logging/logging.dart';
 
-class ChatListPage extends StatefulWidget {
-  @override
-  _ChatListPageState createState() => _ChatListPageState();
-}
+class ChatListPage extends StatelessWidget {
+  final String token;
+  final String loggedInUsername; // Add loggedInUsername parameter
 
-class _ChatListPageState extends State<ChatListPage> {
-  final ApiService _apiService = ApiService();
+  ChatListPage({required this.token, required this.loggedInUsername});
+
   final TextEditingController _usernameController = TextEditingController();
-  List<String> chatTitles = []; // Example: initially empty
+  final Logger _logger = Logger('ChatListPage');
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchChatList();
-  }
-
-  void _fetchChatList() async {
-    // Fetch chat list from the API
-    final chats = await _apiService.getChatList(); // Adjust this line based on your API implementation
-    setState(() {
-      chatTitles = chats;
-    });
+  void _startChat(BuildContext context) {
+    final chatUsername = _usernameController.text;
+    if (chatUsername.isEmpty) {
+      _logger.warning('Username is empty');
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ChatPage(
+          chatUsername: chatUsername,
+          token: token,
+          loggedInUsername: loggedInUsername, // Provide the username
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: Text('Chats', style: TextStyle(color: Colors.black)),
+        title: Text('Start Chat'),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
               controller: _usernameController,
               decoration: InputDecoration(
-                hintText: 'Enter username',
+                hintText: 'Enter username to start chat',
                 filled: true,
                 fillColor: Colors.grey[200],
                 border: OutlineInputBorder(
@@ -49,56 +50,21 @@ class _ChatListPageState extends State<ChatListPage> {
               ),
               style: TextStyle(color: Colors.black),
             ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (_usernameController.text.isNotEmpty) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ChatPage(
-                      chatId: null,
-                      chatUsername: _usernameController.text,
-                    ),
-                  ),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blueAccent,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => _startChat(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                foregroundColor: Colors.white,
               ),
-              foregroundColor: Colors.white, // Set button text color
+              child: Text('Start Chat'),
             ),
-            child: Text('Start New Chat'),
-          ),
-          Expanded(
-            child: chatTitles.isEmpty
-                ? Center(child: Text('No chats yet', style: TextStyle(color: Colors.black)))
-                : ListView.builder(
-                    itemCount: chatTitles.length,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text(chatTitles[index], style: TextStyle(color: Colors.black)),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ChatPage(
-                                chatId: index.toString(),
-                                chatUsername: chatTitles[index],
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-          ),
-        ],
+          ],
+        ),
       ),
-      backgroundColor: Colors.white,
     );
   }
 }

@@ -6,8 +6,15 @@ import 'api_service.dart';
 class ChatPage extends StatefulWidget {
   final String? chatId;
   final String? chatUsername;
+  final String token;
+  final String loggedInUsername; // Add loggedInUsername parameter
 
-  ChatPage({this.chatId, this.chatUsername});
+  ChatPage({
+    this.chatId,
+    this.chatUsername,
+    required this.token,
+    required this.loggedInUsername, // Initialize loggedInUsername
+  });
 
   @override
   _ChatPageState createState() => _ChatPageState();
@@ -26,18 +33,37 @@ class _ChatPageState extends State<ChatPage> {
     super.initState();
     _chatUsername = widget.chatUsername;
     _loadChat(widget.chatId);
-    _apiService.connectToWebSocket((message) {
+
+    // Connect to WebSocket with room
+    _apiService.connectToWebSocket(widget.token, [_chatUsername!], (message) {
+      if (!mounted) {
+        _logger.warning('Widget is not mounted. Cannot update state.');
+        return;
+      }
+      
       _logger.info('Received message from WebSocket: $message');
-      setState(() {
-        final chatMessage = ChatMessage(
-          id: message['id'],
-          text: message['text'],
-          isUserMessage: false,
-          type: message['type'] == 'type1' ? MessageType.type1Received : MessageType.type2Received,
-          replyTo: message['replyTo'],
-        );
-        _messages.add(chatMessage);
-      });
+
+      // Check if the message is from the current user and ignore it if so
+      final username = message['user'];
+      if (username == widget.loggedInUsername) {
+        _logger.info('Ignoring message from self');
+        return;
+      }
+
+      if (mounted) {
+        setState(() {
+          final chatMessage = ChatMessage(
+            id: uuid.v4(), // Generate a unique ID for each message
+            text: message['msg'] ?? '', // Handle the incoming message with key 'msg'
+            isUserMessage: false,
+            type: MessageType.type1Received, // Default to type1Received
+            replyTo: null,
+          );
+          _messages.add(chatMessage);
+        });
+      } else {
+        _logger.warning('Widget is not mounted. Cannot update state.');
+      }
     });
   }
 
@@ -55,7 +81,7 @@ class _ChatPageState extends State<ChatPage> {
     super.dispose();
   }
 
-  void _sendMessage(MessageType type) async {
+  void _sendMessage(MessageType type) {
     final text = _controller.text;
     if (text.isEmpty) {
       _logger.warning('Attempted to send an empty message');
@@ -79,27 +105,11 @@ class _ChatPageState extends State<ChatPage> {
     });
 
     try {
-      final response = await _apiService.sendMessage(text, type == MessageType.type1Sent ? "type1" : "type2");
-      _logger.info('Message sent successfully: ${response['message']}');
+      // Include username in the message
+      _apiService.sendMessage([_chatUsername!], text, type.toString());
+      _logger.info('Message sent successfully');
     } catch (e) {
       _logger.severe('Failed to send message: $e');
-    }
-
-    if (type == MessageType.type1Sent) {
-      _logger.info('Simulating server response for message ID: $messageId');
-      Future.delayed(const Duration(seconds: 3), () {
-        final responseMessage = ChatMessage(
-          id: uuid.v4(),
-          text: 'Server response to "$text"',
-          isUserMessage: false,
-          type: MessageType.type1Received,
-          replyTo: messageId,
-        );
-        _logger.info('Received server response: $responseMessage');
-        setState(() {
-          _messages.add(responseMessage);
-        });
-      });
     }
   }
 
