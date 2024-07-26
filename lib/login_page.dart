@@ -1,42 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import 'api_service.dart';
+import 'api_service_web.dart'; // Ensure this path is correct
 import 'chat_list_page.dart';
 
 class LoginPage extends StatelessWidget {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final ApiService _apiService = ApiService();
+  final ApiServiceImpl _apiService = ApiServiceImpl(); // Correct instance creation
   final ValueNotifier<String> _messageNotifier = ValueNotifier('');
   final Logger _logger = Logger('LoginPage');
+  bool _isAuthenticating = false;  // Prevent multiple login attempts
 
   LoginPage() {
     _logger.info('LoginPage created');
   }
 
   void _authenticate(BuildContext context) async {
+    if (_isAuthenticating) return;  // Prevent multiple calls
+    _isAuthenticating = true;
+
     final username = _usernameController.text;
     final password = _passwordController.text;
 
     _logger.info('Attempting to authenticate user with username: $username');
 
     try {
-      final response = await _apiService.authenticateUser(username, password);
-      final token = response['access_token']; // Extract the token
+      await _apiService.authenticateUser(username, password);
       _messageNotifier.value = 'Login successful';
       _logger.info('Login successful for user: $username');
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => ChatListPage(
-            token: token,
-            loggedInUsername: username, // Pass the loggedInUsername
+            apiService: _apiService, // Pass the shared instance
+            loggedInUsername: username,
           ),
         ),
       );
     } catch (e) {
       _messageNotifier.value = 'Failed to authenticate user: $e';
       _logger.severe('Failed to authenticate user: $e');
+    } finally {
+      _isAuthenticating = false;  // Reset flag after authentication attempt
     }
   }
 

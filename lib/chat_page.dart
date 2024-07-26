@@ -1,19 +1,63 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:logging/logging.dart';
-import 'api_service.dart';
+import 'api_service_web.dart'; // Import your ApiServiceImpl class
+import 'chat_settings_page.dart'; // Import ChatSettingsPage
+
+class ChatMessage {
+  final String id;
+  final String text;
+  final bool isUserMessage;
+  final MessageType type;
+  final String? replyTo;
+
+  ChatMessage({
+    required this.id,
+    required this.text,
+    required this.isUserMessage,
+    required this.type,
+    this.replyTo,
+  });
+
+  @override
+  String toString() {
+    return 'ChatMessage{id: $id, text: $text, isUserMessage: $isUserMessage, type: $type, replyTo: $replyTo}';
+  }
+}
+
+enum MessageType {
+  type1Sent,
+  type1Received,
+  type2Sent,
+  type2Received,
+}
+
+extension MessageTypeExtension on MessageType {
+  String description() {
+    switch (this) {
+      case MessageType.type1Sent:
+        return '1';
+      case MessageType.type1Received:
+        return '1';
+      case MessageType.type2Sent:
+        return '2';
+      case MessageType.type2Received:
+        return '2';
+      default:
+        return 'Unknown';
+    }
+  }
+}
 
 class ChatPage extends StatefulWidget {
-  final String? chatId;
-  final String? chatUsername;
-  final String token;
-  final String loggedInUsername; // Add loggedInUsername parameter
+  final ApiServiceImpl apiService;  // Shared instance
+  final List<String> recipients;
+  final String loggedInUsername;
 
   ChatPage({
-    this.chatId,
-    this.chatUsername,
-    required this.token,
-    required this.loggedInUsername, // Initialize loggedInUsername
+    required this.apiService,
+    required this.recipients,
+    required this.loggedInUsername,
   });
 
   @override
@@ -25,59 +69,48 @@ class _ChatPageState extends State<ChatPage> {
   final TextEditingController _controller = TextEditingController();
   final uuid = Uuid();
   final _logger = Logger('ChatPage');
-  final ApiService _apiService = ApiService();
-  String? _chatUsername;
+  late List<String> _recipients;
+  late ApiServiceImpl _apiService; // Use ApiServiceImpl for WebSocketManager
 
   @override
   void initState() {
     super.initState();
-    _chatUsername = widget.chatUsername;
-    _loadChat(widget.chatId);
+    _logger.info('ChatPage initState called');
+    _recipients = widget.recipients;
+    _apiService = widget.apiService;
 
-    // Connect to WebSocket with room
-    _apiService.connectToWebSocket(widget.token, [_chatUsername!], (message) {
-      if (!mounted) {
-        _logger.warning('Widget is not mounted. Cannot update state.');
-        return;
-      }
-      
+    _apiService.joinRoom(_recipients, (message) {
       _logger.info('Received message from WebSocket: $message');
 
-      // Check if the message is from the current user and ignore it if so
       final username = message['user'];
-      if (username == widget.loggedInUsername) {
+      final type = message['type'];
+      if ((username == widget.loggedInUsername) & (type != MessageType.type1Received.description()) || (username != widget.loggedInUsername) & (type == MessageType.type1Received.description())) {
         _logger.info('Ignoring message from self');
         return;
       }
 
-      if (mounted) {
-        setState(() {
-          final chatMessage = ChatMessage(
-            id: uuid.v4(), // Generate a unique ID for each message
-            text: message['msg'] ?? '', // Handle the incoming message with key 'msg'
-            isUserMessage: false,
-            type: MessageType.type1Received, // Default to type1Received
-            replyTo: null,
-          );
-          _messages.add(chatMessage);
-        });
-      } else {
+      if (!mounted) {
         _logger.warning('Widget is not mounted. Cannot update state.');
+        return;
       }
-    });
-  }
 
-  void _loadChat(String? chatId) {
-    if (chatId != null) {
-      _logger.info('Loading chat with ID: $chatId');
-    } else {
-      _logger.info('Starting a new chat');
-    }
+      setState(() {
+        final chatMessage = ChatMessage(
+          id: uuid.v4(),
+          text: message['msg'] ?? '',
+          isUserMessage: false,
+          type: MessageType.type1Received,
+          replyTo: null,
+        );
+        _messages.add(chatMessage);
+      });
+    });
   }
 
   @override
   void dispose() {
-    _apiService.disconnectWebSocket();
+    _logger.info('ChatPage dispose called');
+    _apiService.leaveRoom(_recipients);
     super.dispose();
   }
 
@@ -105,8 +138,7 @@ class _ChatPageState extends State<ChatPage> {
     });
 
     try {
-      // Include username in the message
-      _apiService.sendMessage([_chatUsername!], text, type.toString());
+      _apiService.sendMessage(_recipients, text, type.description());
       _logger.info('Message sent successfully');
     } catch (e) {
       _logger.severe('Failed to send message: $e');
@@ -115,13 +147,27 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
+    _logger.info('ChatPage build called');
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: Text(
-          _chatUsername != null ? 'Chat with $_chatUsername' : 'New Chat',
+          'Chat with ${_recipients.join(", ")}',
           style: TextStyle(color: Colors.black),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChatSettingsPage(recipients: _recipients), // Pass recipients
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -195,33 +241,5 @@ class _ChatPageState extends State<ChatPage> {
 
   bool _isMessageInGreySection(ChatMessage message) {
     return message.type == MessageType.type1Sent || message.type == MessageType.type1Received;
-  }
-}
-
-enum MessageType {
-  type1Sent,
-  type1Received,
-  type2Sent,
-  type2Received,
-}
-
-class ChatMessage {
-  final String id;
-  final String text;
-  final bool isUserMessage;
-  final MessageType type;
-  final String? replyTo;
-
-  ChatMessage({
-    required this.id,
-    required this.text,
-    required this.isUserMessage,
-    required this.type,
-    this.replyTo,
-  });
-
-  @override
-  String toString() {
-    return 'ChatMessage{id: $id, text: $text, isUserMessage: $isUserMessage, type: $type, replyTo: $replyTo}';
   }
 }

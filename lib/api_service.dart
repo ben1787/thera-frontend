@@ -20,8 +20,18 @@ class ApiService implements ApiServiceInterface {
   }
 
   @override
-  void connectToWebSocket(String token, List<String> to, void Function(Map<String, dynamic>) onMessageReceived) {
-    _service.connectToWebSocket(token, to, onMessageReceived);
+  void connectToWebSocket() {
+    _service.connectToWebSocket();
+  }
+
+  @override
+  void joinRoom(List<String> to, void Function(Map<String, dynamic>) onMessageReceived) {
+    _service.joinRoom(to, onMessageReceived);
+  }
+
+  @override
+  void leaveRoom(List<String> to) {
+    _service.leaveRoom(to);
   }
 
   @override
