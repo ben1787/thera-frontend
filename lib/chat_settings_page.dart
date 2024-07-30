@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class ChatSettingsPage extends StatefulWidget {
   final List<String> recipients;
 
-  ChatSettingsPage({required this.recipients});
+  const ChatSettingsPage({super.key, required this.recipients});
 
   @override
   _ChatSettingsPageState createState() => _ChatSettingsPageState();
@@ -11,7 +11,7 @@ class ChatSettingsPage extends StatefulWidget {
 
 class _ChatSettingsPageState extends State<ChatSettingsPage> {
   bool _shortPressToAI = false;
-  TextEditingController _systemPromptController = TextEditingController();
+  final TextEditingController _systemPromptController = TextEditingController();
 
   @override
   void initState() {
@@ -47,10 +47,10 @@ class _ChatSettingsPageState extends State<ChatSettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chat Settings'),
+        title: const Text('Chat Settings'),
         actions: [
           IconButton(
-            icon: Icon(Icons.save),
+            icon: const Icon(Icons.save),
             onPressed: _saveSettings,
           ),
         ],
@@ -64,7 +64,7 @@ class _ChatSettingsPageState extends State<ChatSettingsPage> {
               children: [
                 Text(
                   _shortPressToAI ? 'Short press for AI' : 'Long press for AI',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 Switch(
                   value: _shortPressToAI,
@@ -77,10 +77,10 @@ class _ChatSettingsPageState extends State<ChatSettingsPage> {
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             TextField(
               controller: _systemPromptController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'AI System Prompt',
               ),
               maxLines: null,

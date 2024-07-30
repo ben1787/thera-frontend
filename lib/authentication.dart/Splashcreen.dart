@@ -20,7 +20,7 @@ class _SplashState extends State<Splash> {
   void initState() {
     super.initState();
     Future.delayed(
-      Duration(seconds: 3),
+      const Duration(seconds: 3),
       () => Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const  Welcomescreen()),
@@ -28,6 +28,7 @@ class _SplashState extends State<Splash> {
     );
   }
 
+  @override
   Widget build(BuildContext context) {
         SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
         statusBarColor: AppColor.secondryColor,
@@ -42,7 +43,7 @@ class _SplashState extends State<Splash> {
             width: MediaQuery.of(context).size.width*100/100,
             color: AppColor.selectcolor,
              child: Text(
-                       AppLanguage.logoText[language],style: TextStyle(fontFamily: AppFont.fontFamily,fontSize:50,color:Colors.white,fontWeight: FontWeight.w700,letterSpacing: 4),
+                       AppLanguage.logoText[language],style: const TextStyle(fontFamily: AppFont.fontFamily,fontSize:50,color:Colors.white,fontWeight: FontWeight.w700,letterSpacing: 4),
                     ),
           ),
         ) ,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'login_page.dart';
 import 'notification_helper.dart';  // Import the helper file
+import 'api_service_web.dart';     // Import the ApiServiceImpl singleton
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,7 +13,10 @@ void main() async {
 
   await initializeNotifications();  // Initialize notifications
 
-  runApp(MyApp());
+  // Initialize the singleton instance of ApiServiceImpl
+  final apiService = ApiServiceImpl();
+
+  runApp(MyApp(apiService: apiService));
 }
 
 void _setupLogging() {
@@ -31,6 +35,10 @@ void _setupLogging() {
 }
 
 class MyApp extends StatelessWidget {
+  final ApiServiceImpl apiService;
+
+  const MyApp({super.key, required this.apiService});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -38,7 +46,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: LoginPage(),
+      home: LoginPage(apiService: apiService),
     );
   }
 }

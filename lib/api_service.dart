@@ -1,5 +1,6 @@
 import 'api_service_web.dart';
 import 'api_service_interface.dart';
+import 'room.dart';
 
 class ApiService implements ApiServiceInterface {
   static final ApiServiceInterface _service = createService();
@@ -45,7 +46,8 @@ class ApiService implements ApiServiceInterface {
   }
 
   @override
-  Future<List<String>> getChatList() {
-    return _service.getChatList();
+  Future<List<Room>> getRooms() {
+    return _service.getRooms();
   }
+  
 }

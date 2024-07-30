@@ -1,3 +1,5 @@
+import 'room.dart';
+
 abstract class ApiServiceInterface {
   Future<Map<String, dynamic>> authenticateUser(String username, String password);
   void connectToWebSocket();
@@ -5,5 +7,5 @@ abstract class ApiServiceInterface {
   void leaveRoom(List<String> to);
   void sendMessage(List<String> to, String message, String type);
   void disconnectWebSocket();
-  Future<List<String>> getChatList();
+  Future<List<Room>> getRooms();  // Change the method name here
 }

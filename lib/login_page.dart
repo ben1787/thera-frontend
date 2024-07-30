@@ -6,12 +6,12 @@ import 'chat_list_page.dart';
 class LoginPage extends StatelessWidget {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final ApiServiceImpl _apiService = ApiServiceImpl(); // Correct instance creation
+  final ApiServiceImpl apiService; // Accept the instance through the constructor
   final ValueNotifier<String> _messageNotifier = ValueNotifier('');
   final Logger _logger = Logger('LoginPage');
   bool _isAuthenticating = false;  // Prevent multiple login attempts
 
-  LoginPage() {
+  LoginPage({super.key, required this.apiService}) {
     _logger.info('LoginPage created');
   }
 
@@ -25,15 +25,15 @@ class LoginPage extends StatelessWidget {
     _logger.info('Attempting to authenticate user with username: $username');
 
     try {
-      await _apiService.authenticateUser(username, password);
+      await apiService.authenticateUser(username, password);
       _messageNotifier.value = 'Login successful';
       _logger.info('Login successful for user: $username');
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => ChatListPage(
-            apiService: _apiService, // Pass the shared instance
-            loggedInUsername: username,
+            apiService: apiService, // Pass the shared instance
+            loggedInPhone: username,
           ),
         ),
       );
@@ -51,7 +51,7 @@ class LoginPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: Text('Login', style: TextStyle(color: Colors.black)),
+        title: const Text('Login', style: TextStyle(color: Colors.black)),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -68,12 +68,12 @@ class LoginPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
-              style: TextStyle(color: Colors.black),
+              style: const TextStyle(color: Colors.black),
               onChanged: (value) {
                 _logger.info('Username field changed: $value');
               },
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             TextField(
               controller: _passwordController,
               decoration: InputDecoration(
@@ -85,12 +85,12 @@ class LoginPage extends StatelessWidget {
                 ),
               ),
               obscureText: true,
-              style: TextStyle(color: Colors.black),
+              style: const TextStyle(color: Colors.black),
               onChanged: (value) {
                 _logger.info('Password field changed');
               },
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => _authenticate(context),
               style: ElevatedButton.styleFrom(
@@ -100,13 +100,13 @@ class LoginPage extends StatelessWidget {
                 ),
                 foregroundColor: Colors.white,
               ),
-              child: Text('Login'),
+              child: const Text('Login'),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             ValueListenableBuilder<String>(
               valueListenable: _messageNotifier,
               builder: (context, message, _) {
-                return Text(message, style: TextStyle(color: Colors.red));
+                return Text(message, style: const TextStyle(color: Colors.red));
               },
             ),
           ],
