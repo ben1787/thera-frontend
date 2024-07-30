@@ -1,4 +1,4 @@
-package com.example.theramvp_project
+package com.example.thera_frontend
 
 import io.flutter.embedding.android.FlutterActivity
 

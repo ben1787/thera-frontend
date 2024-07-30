@@ -1,4 +1,4 @@
-# theramvp_project
+# thera_frontend
 
 A new Flutter project.
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:theramvp_project/utilities.dart/App_color.dart';
+import 'package:thera_frontend/utilities.dart/App_color.dart';
 import '../utilities.dart/App_Image.dart';
 import '../utilities.dart/app_font.dart';
 import 'welcomescrren.dart';
@@ -39,7 +39,7 @@ class _WelcomescreenState extends State<Welcome> {
                   child: Column(
                     children: [
                       SizedBox(height: MediaQuery.of(context).size.height*3/100,),
-                      Container(
+                      SizedBox(
                       width: MediaQuery.of(context).size.width * 90 / 100,
                       child: const Text(
                         "LOGO",
@@ -57,13 +57,13 @@ class _WelcomescreenState extends State<Welcome> {
                   SizedBox(height: MediaQuery.of(context).size.height*2/100,),
                Expanded(
                  child: SingleChildScrollView(
-                    child: Container(
+                    child: SizedBox(
                         width: MediaQuery.of(context).size.width*90/100,
                       child: Column(
                         children: [
                                //----------------------text container ----------------------------------------------------------------//           
                            Center(
-                child: Container(
+                child: SizedBox(
                   width: MediaQuery.of(context).size.width * 90 / 100,
                   child: Row(
                     children: [
@@ -75,8 +75,8 @@ class _WelcomescreenState extends State<Welcome> {
                         children: [
                           Container(
                             alignment: Alignment.center,
-                            margin: EdgeInsets.only(left: 6),
-                            padding: EdgeInsets.symmetric(horizontal: 10),
+                            margin: const EdgeInsets.only(left: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
                             height:
                                 MediaQuery.of(context).size.height * 5 / 100,
                             decoration: const BoxDecoration(
@@ -149,7 +149,7 @@ class _WelcomescreenState extends State<Welcome> {
             //-------------------------textfield---------------------------------------------------//
               Container(  
                                 width: MediaQuery.of(context).size.width * 90 / 100,
-                                padding: EdgeInsets.symmetric(vertical: 5),
+                                padding: const EdgeInsets.symmetric(vertical: 5),
                                 child: TextFormField(
                                   // inputFormatters: [maskFormatter],
                                   maxLines: 1,
@@ -181,9 +181,9 @@ class _WelcomescreenState extends State<Welcome> {
                                       suffixIcon: IconButton(
                                         icon: GestureDetector(
                                           onTap: () {
-                                            Navigator.push(context, MaterialPageRoute(builder: (context)=>Welcomescreen()));
+                                            Navigator.push(context, MaterialPageRoute(builder: (context)=>const Welcomescreen()));
                                           },
-                                          child: Container(
+                                          child: SizedBox(
                                             width: MediaQuery.of(context).size.width *
                                                 5/
                                                 100,

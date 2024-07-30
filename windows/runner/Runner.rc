@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "theramvp_project" "\0"
+            VALUE "FileDescription", "thera_frontend" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "theramvp_project" "\0"
+            VALUE "InternalName", "thera_frontend" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2024 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "theramvp_project.exe" "\0"
-            VALUE "ProductName", "theramvp_project" "\0"
+            VALUE "OriginalFilename", "thera_frontend.exe" "\0"
+            VALUE "ProductName", "thera_frontend" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

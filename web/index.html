@@ -23,13 +23,13 @@
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="theramvp_project">
+  <meta name="apple-mobile-web-app-title" content="thera_frontend">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>theramvp_project</title>
+  <title>thera_frontend</title>
   <link rel="manifest" href="manifest.json">
 
   <script>
@@ -41,7 +41,14 @@
 </head>
 <body>
   <script>
+    console.log('flutter.js loaded:', typeof _flutter !== 'undefined');
+    
     window.addEventListener('load', function(ev) {
+      console.log('Window loaded:', typeof _flutter !== 'undefined');
+      if (typeof _flutter === 'undefined') {
+        console.error('_flutter is not defined');
+        return;
+      }
       // Download main.dart.js
       _flutter.loader.loadEntrypoint({
         serviceWorker: {
