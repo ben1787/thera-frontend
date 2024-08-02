@@ -5,10 +5,11 @@ import 'package:logging/logging.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'notification_helper.dart';  // Import the helper file
 import 'room.dart';
+import 'chat_message.dart';
 
 class WebSocketManager {
   // Singleton instance
-  static  WebSocketManager? _instance;
+  static WebSocketManager? _instance;
 
   // Factory constructor to return the singleton instance
   factory WebSocketManager(Future<String> Function() refreshTokenCallback) {
@@ -25,9 +26,10 @@ class WebSocketManager {
   // Instance variables
   IO.Socket? _socket;
   final Logger _logger = Logger('WebSocketManager');
-  List<String>? _currentRoom; // Variable to track the current room
-  void Function(Map<String, dynamic>)? _onMessageReceived;
+  String? _lastEvent;
+  dynamic _lastData;
   final Future<String> Function() _refreshTokenCallback;
+  void Function(Map<String, dynamic>)? _onMessageReceived;  // Declare _onMessageReceived here
 
   void connect(String url, String token) {
     _logger.info('Connecting to WebSocket with token: $token');
@@ -38,8 +40,7 @@ class WebSocketManager {
         .disableAutoConnect()
         .build();
     
-    _socket = IO.io(url,options);
-
+    _socket = IO.io(url, options);
     _socket?.connect();
     
     _socket?.on('connect', (_) {
@@ -47,12 +48,12 @@ class WebSocketManager {
       _logger.info('Socket ID: ${_socket?.id}');
       _logger.info('Socket Connected: ${_socket?.connected}');
       _logger.info('Socket URL: ${_socket?.io.uri}');
-      _rejoinRoom(); // Rejoin room on reconnect
+      
+      // Re-emit the last event after successful reconnection
+      if (_lastEvent != null && _lastData != null) {
+        _emitWebSocketEvent(_lastEvent!, _lastData);
+      }
     });
-
-/*     _socket?.onAny((event, data) {
-      _logger.info('Received event: $event, data: $data');
-    }); */
 
     _socket?.on('disconnect', (reason) async {
       _logger.info('Disconnected from WebSocket server, reason: $reason');
@@ -73,7 +74,7 @@ class WebSocketManager {
     _socket?.on('message', (data) async {
       _logger.info('Received message: $data');
       if (data is Map<String, dynamic>) {
-        _onMessageReceived?.call(data);
+        _onMessageReceived?.call(data);  // This will work now
       } else {
         _logger.warning('Received data is not a Map<String, dynamic>: $data');
       }
@@ -82,7 +83,6 @@ class WebSocketManager {
     _socket?.on('notification', (data) async {
       _logger.info('Received notification: $data');
       if (data is Map<String, dynamic>) {
-        // Show notification if necessary
         if (data['msg'] != null) {
           _logger.info('Notification Received: $data');
           await showNotification(data['msg']);
@@ -93,55 +93,49 @@ class WebSocketManager {
         _logger.warning('Received data is not a Map<String, dynamic>: $data');
       }
     });
-
-    _socket?.on('reconnect', (attempt) {
-      _logger.info('Reconnecting to WebSocket, attempt: $attempt');
-      _rejoinRoom(); // Rejoin room on reconnect
-    });
-
-    _socket?.on('reconnect_attempt', (attempt) {
-      _logger.info('Reconnect attempt: $attempt');
-    });
-
-    _socket?.on('reconnect_failed', (error) {
-      _logger.severe('Reconnect failed: $error');
-    });
   }
 
   void reconnect() async {    
-        String newToken = await _refreshTokenCallback(); // Use the callback to refresh token and reconnect
-        _logger.info('Reconnecting to WebSocket with new token... $newToken');
-        _socket?.io.options?['extraHeaders'] = {'Authorization': 'Bearer $newToken'};
-        _socket?.connect();
+    String newToken = await _refreshTokenCallback(); // Use the callback to refresh token and reconnect
+    _logger.info('Reconnecting to WebSocket with new token... $newToken');
+    _socket?.io.options?['extraHeaders'] = {'Authorization': 'Bearer $newToken'};
+    _socket?.connect();
   }
 
-  void joinRoom(List<String> to, void Function(Map<String, dynamic>)? onMessageReceived) {
-    _logger.info('Joining room: $to');
-    
+  void _emitWebSocketEvent(String event, dynamic data) {
     if (_socket != null && _socket!.connected) {
-      //_logger.info('Using access token for join: $_accessToken');
-      _socket?.emit('join', {'to': to});
-      _logger.info('Just emitted to: $to');
-      _currentRoom = to; // Set the current room
-      _onMessageReceived = onMessageReceived;
+      _socket?.emit(event, data);
+      _lastEvent = null;
+      _lastData = null; // Clear last request after successful emit
     } else {
-      _logger.severe('Socket is not connected, cannot join room');
-      reconnect();
+      _lastEvent = event;
+      _lastData = data;
+      reconnect(); // Attempt to reconnect and then retry the last request
     }
   }
 
-  void _rejoinRoom() {
-    if (_currentRoom != null) {
-      _logger.info('Rejoining room: $_currentRoom');
-      joinRoom(_currentRoom!, _onMessageReceived);
-    }
+  void joinRoom(List<String> phones, void Function(Map<String, dynamic>)? onMessageReceived) {
+    _logger.info('Joining room: $phones');
+    _emitWebSocketEvent('join', {'phones': phones});
+    _onMessageReceived = onMessageReceived;
   }
 
-  void leaveRoom(List<String> to) {
-    _logger.info('Leaving room: $to');
-    _socket?.emit('leave', {'to': to});
-    _currentRoom = null;
+  void leaveRoom(List<String> phones) {
+    _logger.info('Leaving room: $phones');
+    _emitWebSocketEvent('leave', {'phones': phones});
     _onMessageReceived = null;
+  }
+
+  void sendMessage(List<String> phones, String message, String type) {
+    _logger.info('Sending message to room $phones: $message');
+    _emitWebSocketEvent('message', {'phones': phones, 'message': message, 'type': type});
+  }
+
+  void disconnect() {
+    _logger.info('Disconnecting WebSocket');
+    clearListeners();
+    _socket?.disconnect();
+    _socket = null;
   }
 
   void clearListeners() {
@@ -156,18 +150,6 @@ class WebSocketManager {
       _socket?.off('reconnect_failed');
       _socket?.off('notification');
     }
-  }
-
-  void sendMessage(List<String> to, String message, String type) {
-    _logger.info('Sending message to room $to: $message');
-    _socket?.emit('message', {'to': to, 'message': message, 'type': type});
-  }
-
-  void disconnect() {
-    _logger.info('Disconnecting WebSocket');
-    clearListeners();
-    _socket?.disconnect();
-    _socket = null;
   }
 }
 
@@ -193,26 +175,24 @@ class ApiServiceImpl implements ApiServiceInterface {
   String? accessToken;
   String? refreshToken;
 
-  @override
-  void connectToWebSocket() {
-    _logger.info('connectToWebSocket ApiServiceImpl instance: $hashCode');  // Log instance identity
-    if (accessToken != null) {
-      _webSocketManager.connect(baseUrl, accessToken!);
-      _logger.info('connectToWebSocket Access token: $accessToken');
-    } else {
-      _logger.severe('Cannot connect to WebSocket: Access token is null');
+  Future<http.Response> _performHttpRequest(Future<http.Response> Function() request) async {
+    http.Response response = await request();
+
+    if (response.statusCode == 401 || response.body.contains('Token Has Expired')) {
+      await _handleTokenExpiry();
+      response = await request();
     }
+
+    return response;
   }
 
   Future<String> refreshTokenAndReconnect() async {
-    _logger.info('refreshTokenAndReconnect ApiServiceImpl instance: $hashCode');  // Log instance identity
-    //_logger.info('refreshTokenAndReconnect Refresh token: $refreshToken');
+    _logger.info('refreshTokenAndReconnect ApiServiceImpl instance: $hashCode');
     await _handleTokenExpiry();
     return accessToken!;
   }
 
   Future<void> _handleTokenExpiry() async {
-    //_logger.info('_handleTokenExpiry Refresh token: $refreshToken');
     if (refreshToken != null) {
       final refreshUrl = '$baseUrl/refresh';
       final response = await http.post(
@@ -250,14 +230,25 @@ class ApiServiceImpl implements ApiServiceInterface {
   }
 
   @override
-  void joinRoom(List<String> to, void Function(Map<String, dynamic>) onMessageReceived) {
-    _webSocketManager.joinRoom(to, onMessageReceived);
+  void connectToWebSocket() {
+    _logger.info('connectToWebSocket ApiServiceImpl instance: $hashCode');
+    if (accessToken != null) {
+      _webSocketManager.connect(baseUrl, accessToken!);
+      _logger.info('connectToWebSocket Access token: $accessToken');
+    } else {
+      _logger.severe('Cannot connect to WebSocket: Access token is null');
+    }
+  }
+
+  @override
+  void joinRoom(List<String> phones, void Function(Map<String, dynamic>) onMessageReceived) {
+    _webSocketManager.joinRoom(phones, onMessageReceived);
     _logger.info('joinRoom access token: $accessToken');
   }
 
   @override
-  void leaveRoom(List<String> to) {
-    _webSocketManager.leaveRoom(to);
+  void leaveRoom(List<String> phones) {
+    _webSocketManager.leaveRoom(phones);
   }
 
   @override
@@ -292,8 +283,8 @@ class ApiServiceImpl implements ApiServiceInterface {
   }
 
   @override
-  void sendMessage(List<String> to, String message, String type) {
-    _webSocketManager.sendMessage(to, message, type);
+  void sendMessage(List<String> phones, String message, String type) {
+    _webSocketManager.sendMessage(phones, message, type);
   }
 
   @override
@@ -306,19 +297,45 @@ class ApiServiceImpl implements ApiServiceInterface {
     final url = '$baseUrl/rooms';
     _logger.info('Sending GET request to $url');
 
-    final response = await http.get(Uri.parse(url), headers: _authHeaders());
-    _logger.info('Received response: ${response.statusCode} ${response.body}');
+    final response = await _performHttpRequest(() async {
+      return await http.get(Uri.parse(url), headers: _authHeaders());
+    });
 
     if (response.statusCode == 200) {
       List<dynamic> jsonList = jsonDecode(response.body);
       return jsonList.map((json) => Room.fromJson(json)).toList();
-    } else if (response.statusCode == 401 || response.body.contains('Token Has Expired')) {
-      _logger.info('Get rooms received 401 response');
-      await _handleTokenExpiry();
-      return getRooms(); // Retry the request
     } else {
       _logger.warning('Failed to fetch rooms list. Status code: ${response.statusCode}, Body: ${response.body}');
       return [];
+    }
+  }
+
+  @override
+  Future<List<ChatMessage>> fetchMessages(List<String> phones) async {
+    _logger.info('API Response Refreshgin: $phones');
+    final response = await _performHttpRequest(() async {
+      return await http.post(
+        Uri.parse('$baseUrl/messages'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'phones': phones,
+        }),
+      );
+    });
+
+    _logger.info('API Response2: ${response.statusCode}');
+    _logger.info('API Response: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      _logger.info('API Response: ${response.body}');
+      return data.map((json) => ChatMessage.fromJson(json)).toList();
+      // return data.map((json) => ChatMessage.fromJson(json)).toList().reversed.toList();
+    } else {
+      throw Exception('Failed to load messages');
     }
   }
 }
