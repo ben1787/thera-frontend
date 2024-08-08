@@ -7,6 +7,7 @@ import 'contact_info.dart';
 import 'chat_message.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'dart:async';
+import 'package:bubble/bubble.dart';
 
 MessageType _getMessageType(String type) {
   switch (type) {
@@ -192,6 +193,14 @@ class _ChatPageState extends State<ChatPage> {
     return message.type == MessageType.type1 || message.type == MessageType.type2;
   }
 
+  String _getNameForPhone(String phone) {
+    final contact = _recipients.firstWhere(
+      (c) => c.phoneNumber.replaceAll(RegExp(r'\D'), '') == phone.replaceAll(RegExp(r'\D'), ''),
+      orElse: () => ContactInfo(name: phone, phoneNumber: phone),
+    );
+    return contact.name;
+  }
+
   @override
   Widget build(BuildContext context) {
     _logger.info('ChatPage build called');
@@ -227,8 +236,9 @@ class _ChatPageState extends State<ChatPage> {
                 MaterialPageRoute(
                   builder: (context) => ChatSettingsPage(
                     recipients: _recipients
-                        .map((c) => c.phoneNumber.replaceAll(RegExp(r'\D'), ''))
-                        .toList(),
+                      .map((c) => c.phoneNumber.replaceAll(RegExp(r'\D'), ''))
+                      .toList(),
+                    apiService: widget.apiService, // Specify the parameter name
                   ),
                 ),
               ).then((_) {
@@ -249,33 +259,52 @@ class _ChatPageState extends State<ChatPage> {
               controller: _scrollController,
               reverse: true, // Reverse the list order in the UI
               itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                if (!_showType12 && (message.type == MessageType.type1 || message.type == MessageType.type2)) {
-                  return Container();
-                }
-                final inGreySection = _isMessageInGreySection(message);
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Align(
-                    alignment: (message.phone.replaceAll(RegExp(r'\D'), '') == widget.loggedInPhone.replaceAll(RegExp(r'\D'), '') &&
-                                (message.type == MessageType.type1 || message.type == MessageType.type3))
-                        ? Alignment.centerRight
-                        : Alignment.centerLeft,
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: inGreySection ? Colors.grey[300] : Colors.blueAccent,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: SelectableText(
-                        message.msg,
-                        style: const TextStyle(color: Colors.black),
-                      ),
-                    ),
-                  ),
-                );
-              },
+itemBuilder: (context, index) {
+  final message = _messages[index];
+  if (!_showType12 && (message.type == MessageType.type1 || message.type == MessageType.type2)) {
+    return Container();
+  }
+  
+  final inGreySection = _isMessageInGreySection(message);
+  // Get the sender's name
+  final senderName = message.type == MessageType.type2 
+      ? 'Thera' 
+      : _getNameForPhone(message.phone); 
+  
+  final isOwnMessage = message.phone.replaceAll(RegExp(r'\D'), '') == widget.loggedInPhone.replaceAll(RegExp(r'\D'), '') && message.type != MessageType.type2;
+  
+  // Logging the comparison values
+  // _logger.info('Comparing phones: message.phone = ${message.phone.replaceAll(RegExp(r'\D'), '')}, loggedInPhone = ${widget.loggedInPhone.replaceAll(RegExp(r'\D'), '')}, ${message.type},  isOwnMessage: $isOwnMessage');
+
+  return Padding(
+    padding: const EdgeInsets.all(4.0),
+    child: Align(
+      alignment: isOwnMessage ? Alignment.centerRight : Alignment.centerLeft,
+      child: Column(
+        crossAxisAlignment: isOwnMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: [
+          if (!isOwnMessage) 
+            Text(
+              senderName, 
+              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+            ),
+          if (!isOwnMessage) const SizedBox(height: 2),
+          Bubble(
+            margin: const BubbleEdges.only(top: 4),
+            alignment: isOwnMessage ? Alignment.topRight : Alignment.topLeft,
+            nip: isOwnMessage ? BubbleNip.rightTop : BubbleNip.leftTop,
+            color: message.type==MessageType.type1 ? Color.fromARGB(255, 147, 185, 250) : message.type==MessageType.type2 ? const Color(0xFF00FFFF) : isOwnMessage ? Colors.blueAccent : Colors.grey.shade300,
+            child: Text(
+              message.msg,
+              textAlign: isOwnMessage ? TextAlign.right : TextAlign.left,
+              style: TextStyle(color: isOwnMessage ? Colors.black : Colors.black),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+},
             ),
           ),
           Padding(

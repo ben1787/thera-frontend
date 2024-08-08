@@ -338,4 +338,34 @@ class ApiServiceImpl implements ApiServiceInterface {
       throw Exception('Failed to load messages');
     }
   }
+
+  @override
+  Future<void> saveChatSettings(List<String> phones, bool shortPressToAI, String systemPrompt) async {
+    final url = '$baseUrl/room-prompt';
+
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'phones': phones,
+          'setting': systemPrompt,
+          'shortPressToAI': shortPressToAI
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        _logger.info('Chat settings updated successfully');
+      } else {
+        _logger.severe('Failed to update chat settings: ${response.statusCode}, ${response.body}');
+        throw Exception('Failed to update chat settings');
+      }
+    } catch (e) {
+      _logger.severe('Exception occurred while updating chat settings: $e');
+      throw Exception('Exception occurred while updating chat settings');
+    }
+  }
 }

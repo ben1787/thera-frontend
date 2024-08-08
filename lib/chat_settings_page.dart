@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+import 'api_service_web.dart'; // Import your ApiServiceImpl class
 
 class ChatSettingsPage extends StatefulWidget {
   final List<String> recipients;
+  final ApiServiceImpl apiService; // Add ApiServiceImpl
 
-  const ChatSettingsPage({super.key, required this.recipients});
+  const ChatSettingsPage({
+    super.key, 
+    required this.recipients,
+    required this.apiService, // Add ApiServiceImpl parameter
+  });
 
   @override
   _ChatSettingsPageState createState() => _ChatSettingsPageState();
@@ -34,13 +41,13 @@ class _ChatSettingsPageState extends State<ChatSettingsPage> {
     } */
   }
 
-  Future<void> _saveSettings() async {    // Save to server
-/*     try {
-      await _apiService.saveChatSettings(widget.recipients, _shortPressToAI, _systemPromptController.text);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Settings saved successfully')));
+  Future<void> _saveSettings() async {
+    try {
+      await widget.apiService.saveChatSettings(widget.recipients, _shortPressToAI, _systemPromptController.text);
+      // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Settings saved successfully')));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save settings: $e')));
-    } */
+      // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save settings: $e')));
+    }
   }
 
   @override

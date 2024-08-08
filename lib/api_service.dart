@@ -55,4 +55,9 @@ class ApiService implements ApiServiceInterface {
   Future<List<ChatMessage>> fetchMessages(List<String> phones) {
     return _service.fetchMessages(phones); // Implement this method
   }
+
+  @override
+  Future<void> saveChatSettings(List<String> phones, bool shortPressToAI, String systemPrompt) {
+    return _service.saveChatSettings(phones, shortPressToAI, systemPrompt); // Delegate the call
+  }
 }

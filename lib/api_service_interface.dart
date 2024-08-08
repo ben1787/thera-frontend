@@ -10,4 +10,5 @@ abstract class ApiServiceInterface {
   void disconnectWebSocket();
   Future<List<Room>> getRooms();  
   Future<List<ChatMessage>> fetchMessages(List<String> phones);  // New method to fetch messages
+  Future<void> saveChatSettings(List<String> phones, bool shortPressToAI, String systemPrompt);
 }
